@@ -13,6 +13,26 @@ columns = columns_bonus_pic
 index = index_bonus_pic
 path = path_bonus_pic
 
+########################################
+##### マイナス、1行削除のための変数・関数定義
+########################################
+
+#マイナス、1行削除のチェック状態用の変数
+if "minus_check" not in st.session_state:
+    st.session_state["minus_check"] = False
+    minus_check = st.session_state["minus_check"]
+
+def toggle_minus_check():
+    st.session_state["minus_check"] = not st.session_state["minus_check"]
+
+#ボタンの表示文字列の設定
+if st.session_state["minus_check"]:
+    button_str = "マイナス"
+    button_type = "primary"
+else:
+    button_str = "カウント"
+    button_type = "secondary"
+
 #################################
 ##### csvファイルの読み込み
 #################################
@@ -67,7 +87,7 @@ elif st.session_state.pic_select == columns[5]:
     st.image(im)
 
 #登録ボタン
-submit_btn = st.button("登録")
+submit_btn = st.button(button_str, type=button_type)
 
 #登録ボタンが押されたら選択内容に応じてカウントアップ
 if submit_btn:
@@ -77,8 +97,16 @@ if submit_btn:
         
         #選択内容とカラム名が一致したらカウントアップ処理
         if column == st.session_state.pic_select:
-            #指定のカラムの数値を+1する
-            df.at[df.index[0], column] += 1
+            ##### マイナスチェックの状態に合わせてカウントを変更
+            if st.session_state["minus_check"]:
+                #指定のカラムの数値を-1する
+                df.at[df.index[0], column] -= 1
+                if df.at[df.index[0], column] < 0:
+                    df.at[df.index[0], column] = 0
+
+            else:
+                #指定のカラムの数値を+1する
+                df.at[df.index[0], column] += 1
 
             #csvに保存する
             df.to_csv(path)
@@ -129,3 +157,6 @@ st.caption("[参考] 過去の実戦結果")
 #過去の実戦結果画像の表示
 im_result = Image.open("./image/bonus_pic_56result.bmp")
 st.image(im_result, use_column_width=True)
+
+##### マイナスのチェックボックス表示
+st.checkbox("マイナスカウント、1行削除", value=st.session_state["minus_check"], on_change=toggle_minus_check)
