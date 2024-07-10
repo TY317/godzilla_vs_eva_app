@@ -13,6 +13,26 @@ columns = columns_normal_suika
 index = index_normal_suika
 path = path_normal_suika
 
+########################################
+##### マイナス、1行削除のための変数・関数定義
+########################################
+
+#マイナス、1行削除のチェック状態用の変数
+if "minus_check" not in st.session_state:
+    st.session_state["minus_check"] = False
+    minus_check = st.session_state["minus_check"]
+
+def toggle_minus_check():
+    st.session_state["minus_check"] = not st.session_state["minus_check"]
+
+#ボタンの表示文字列の設定
+if st.session_state["minus_check"]:
+    button_str = "マイナス"
+    button_type = "primary"
+else:
+    button_str = "カウント"
+    button_type = "secondary"
+
 #################################
 ##### csvファイルの読み込み
 #################################
@@ -42,7 +62,7 @@ with st.form(key="nomal_suika_count"):
         st.caption("スイカ回数カウント")
     
     #カウントボタン
-        suika_count_btn = st.form_submit_button("カウント")
+        suika_count_btn = st.form_submit_button(button_str,type=button_type)
     
     ####カウントボタンが押されたらカウントアップさせてcsv保存
         if suika_count_btn:
@@ -51,8 +71,15 @@ with st.form(key="nomal_suika_count"):
             current_count = df.at[index[0], columns[0]]
             # st.caption(current_count)
 
-            #現在のカウントに1を足す
-            new_count = current_count + 1
+            ##### マイナスチェックの状態に合わせてプラスorマイナス
+            if st.session_state["minus_check"]:
+                #現在のカウントから1を引く
+                new_count = current_count - 1
+                if new_count < 0:
+                    new_count = 0
+            else:
+                #現在のカウントに1を足す
+                new_count = current_count + 1
 
             #データフレーム内の数値データを置き換える
             df.at[index[0], columns[0]] = new_count
@@ -78,7 +105,7 @@ with st.form(key="nomal_cz_count"):
         st.caption("CZ アスカvsレイ 回数カウント")
     
     #カウントボタン
-        cz_count_btn = st.form_submit_button("カウント")
+        cz_count_btn = st.form_submit_button(button_str, type=button_type)
     
     ####カウントボタンが押されたらカウントアップさせてcsv保存
         if cz_count_btn:
@@ -87,8 +114,17 @@ with st.form(key="nomal_cz_count"):
             current_count = df.at[index[1], columns[0]]
             # st.caption(current_count)
 
-            #現在のカウントに1を足す
-            new_count = current_count + 1
+            ##### マイナスチェックの状態に合わせてプラスorマイナス
+            if st.session_state["minus_check"]:
+                #現在のカウントから1を引く
+                new_count = current_count - 1
+                if new_count < 0:
+                    new_count = 0
+            else:
+                #現在のカウントに1を足す
+                new_count = current_count + 1
+            # #現在のカウントに1を足す
+            # new_count = current_count + 1
 
             #データフレーム内の数値データを置き換える
             df.at[index[1], columns[0]] = new_count
@@ -138,3 +174,6 @@ with col2:
 
     #データフレームの表示
     st.dataframe(df_theoretical)
+
+##### マイナスのチェックボックス表示
+st.checkbox("マイナスカウント、1行削除", value=st.session_state["minus_check"], on_change=toggle_minus_check)
